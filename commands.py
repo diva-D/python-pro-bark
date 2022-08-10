@@ -1,6 +1,5 @@
-from ctypes import Union
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional
 from database import DatabaseManager
 from datetime import timezone
 from pydantic import BaseModel, ValidationError
