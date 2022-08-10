@@ -1,4 +1,5 @@
 from datetime import datetime
+import sys
 from typing import Optional, Union
 from database import DatabaseManager
 from datetime import timezone
@@ -52,3 +53,7 @@ class DeleteBookmarkCommand:
     def execute(self, id: str) -> str:
         db.delete("bookmarks", criteria={"id": id})
         return "Bookmark deleted!"
+    
+class QuitCommand:
+    def execute(self) -> None:
+        sys.exit()
