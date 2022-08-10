@@ -41,7 +41,7 @@ class DatabaseManager:
             column_values,
         )
 
-    def delete(self, table: str, criteria: dict[str, Any]) -> None:
+    def delete(self, table: str, criteria: dict[str, str]) -> None:
         placeholders = [f"{column} = ?" for column in criteria.keys()]
         delete_criteria = " AND ".join(placeholders)
         self._execute(

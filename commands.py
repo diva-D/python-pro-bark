@@ -46,3 +46,9 @@ class ListBookmarksCommand:
     def execute(self) -> list[str]:
         cursor = db.select(table="bookmarks", order_by=self.order_by)
         return cursor.fetchall()
+
+
+class DeleteBookmarkCommand:
+    def execute(self, id: str) -> str:
+        db.delete("bookmarks", criteria={"id": id})
+        return "Bookmark deleted!"
