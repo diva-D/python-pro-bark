@@ -1,7 +1,6 @@
-from select import select
 import sqlite3
 from sqlite3 import Cursor
-from typing import Any
+from typing import Any, Union
 
 
 class DatabaseManager:
@@ -11,7 +10,7 @@ class DatabaseManager:
     def __del__(self):
         self.connection.close()
 
-    def _execute(self, statement: str, parameters: list[Any] = None) -> Cursor:
+    def _execute(self, statement: str, parameters: Union[None, tuple[Any]] = None) -> Cursor:
         with self.connection:
             cursor = self.connection.cursor()
             cursor.execute(statement, parameters or [])
@@ -56,18 +55,19 @@ class DatabaseManager:
     def select(
         self,
         table: str,
-        columns: list = None,
-        criteria: dict[str, Any] = None,
-        order_by: str = None,
-    ) -> None:
+        columns: Union[None, list[str]] = None,
+        criteria: Union[None, dict[str, str]] = None,
+        order_by: Union[None, str] = None,
+    ) -> Cursor:
         select_columns = ", ".join(columns or ["*"])
-        placeholders = [f"{column} = ?" for column in criteria]
-        delete_criteria = " AND ".join(placeholders)
-        self._execute(
-            f"""
-            SELECT {select_columns} FROM {table}
-            WHERE {delete_criteria}
-            {f"ORDER BY {order_by}" if order_by else ""}
-            """,
-            tuple(criteria.values()),
+        query: str = f"SELECT {select_columns} FROM {table}"
+        if columns is not None:
+            placeholders: list[str] = [f"{column} = ?" for column in columns]
+            select_criteria = " AND ".join(placeholders)
+            query += f" WHERE {select_criteria}"
+        if order_by is not None:
+            query += f" ORDER BY {order_by}"
+        return self._execute(
+            query,
+            tuple(criteria.values()) if criteria is not None else None,
         )
