@@ -37,7 +37,7 @@ class AddBookmarkCommand:
             return f"Bookmark for {bookmark.title} added!"
             
         except ValidationError as e:
-            return repr(e)
+            return (str(e))
         
 
 class ListBookmarksCommand:
