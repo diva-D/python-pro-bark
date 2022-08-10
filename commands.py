@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from database import DatabaseManager
 from datetime import timezone
 from pydantic import BaseModel, ValidationError
@@ -38,5 +38,11 @@ class AddBookmarkCommand:
         except ValidationError as e:
             return repr(e)
         
-        
+
+class ListBookmarksCommand:
+    def __init__(self, order_by: Union[None, str] = "date_added"):
+        self.order_by = order_by
     
+    def execute(self) -> list[str]:
+        cursor = db.select(table="bookmarks", order_by=self.order_by)
+        return cursor.fetchall()
