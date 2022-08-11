@@ -1,3 +1,4 @@
+import os
 import commands
 from typing import Any, Union, Callable, cast
 
@@ -43,8 +44,12 @@ def get_new_bookmark_data() -> dict[str, Union[str, None]]:
 def get_delete_bookmark_data() -> str:
     return cast(str, get_user_input("Enter ID of bookmark to delete", required=True))
 
-if __name__ == "__main__":
-    commands.CreateBookmarksTableCommand().execute()
+def clear_screen():
+    clear = 'cls' if os.name == 'nt' else 'clear'
+    os.system(clear)
+
+
+def loop():
     options: dict[str, Option] = {
         "A": Option("Add a bookmark", commands.AddBookmarkCommand(), cast(Callable[..., Any], get_new_bookmark_data)),
         "B": Option("List bookmarks by date", commands.ListBookmarksCommand(order_by="title")),
@@ -55,4 +60,14 @@ if __name__ == "__main__":
     print_options(options)
     print("")
     choice: Option = get_user_choice(options)
+    print("")
     choice.choose()
+    print("")
+    _ = input('Press ENTER to return to menu')
+    clear_screen()
+
+    
+if __name__ == "__main__":
+    commands.CreateBookmarksTableCommand().execute()
+    while True:
+        loop()
