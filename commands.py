@@ -1,6 +1,6 @@
 from datetime import datetime
 import sys
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from database import DatabaseManager
 from datetime import timezone
 from pydantic import BaseModel, ValidationError
@@ -15,9 +15,12 @@ class Bookmark(BaseModel):
     url: str
     notes: Optional[str] = None
     date_added: str = datetime.now(timezone.utc).isoformat()
+    
+class Command:
+    pass
 
-class CreateBookmarksTableCommand:
-    def execute(self):
+class CreateBookmarksTableCommand(Command):
+    def execute(self) -> None:
         bookmark_columns = {
             "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
             "title": "TEXT NOT NULL",
@@ -28,7 +31,7 @@ class CreateBookmarksTableCommand:
         db.create_table("bookmarks", bookmark_columns)
 
 
-class AddBookmarkCommand:
+class AddBookmarkCommand(Command):
     def execute(self, bookmark_data: dict[str, str]) -> str:
         try:
             bookmark = Bookmark(**bookmark_data)
@@ -40,20 +43,20 @@ class AddBookmarkCommand:
             return (str(e))
         
 
-class ListBookmarksCommand:
+class ListBookmarksCommand(Command):
     def __init__(self, order_by: Union[None, str] = "date_added"):
         self.order_by = order_by
     
-    def execute(self) -> list[str]:
+    def execute(self) -> list[Any]:
         cursor = db.select(table="bookmarks", order_by=self.order_by)
         return cursor.fetchall()
 
 
-class DeleteBookmarkCommand:
+class DeleteBookmarkCommand(Command):
     def execute(self, id: str) -> str:
         db.delete("bookmarks", criteria={"id": id})
         return "Bookmark deleted!"
     
-class QuitCommand:
+class QuitCommand(Command):
     def execute(self) -> None:
         sys.exit()
