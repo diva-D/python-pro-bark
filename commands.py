@@ -4,6 +4,7 @@ import sys
 from typing import Optional, Union, Any
 from database import DatabaseManager
 from datetime import timezone
+from pprint import pprint
 from pydantic import BaseModel, ValidationError, parse_obj_as
 
 import requests
@@ -53,7 +54,7 @@ class ListBookmarksCommand(Command):
     
     def execute(self) -> list[Any]:
         cursor = db.select(table="bookmarks", order_by=self.order_by)
-        return cursor.fetchall()
+        return pprint(cursor.fetchall())
 
 
 class DeleteBookmarkCommand(Command):

@@ -1,5 +1,6 @@
 import os
 import commands
+from pprint import pprint
 from typing import Any, Union, Callable, cast
 from pydantic_types import ResponseGithubStars
 
@@ -12,7 +13,7 @@ class Option:
     def choose(self) -> None:
         data = self.prep_call() if self.prep_call else None
         message: str = self.command.execute(data) if data else self.command.execute()  # type: ignore
-        print(message)
+        pprint(message)
         
     def __str__(self):
         return self.name
