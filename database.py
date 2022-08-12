@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Cursor
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 
 class DatabaseManager:
@@ -41,6 +41,23 @@ class DatabaseManager:
             column_values,
         )
 
+    def update(self, table: str, columns: dict[str, str], criteria: Optional[dict[str, str]] = None):
+        set_parameters = ", ".join([
+            f"{column} = '{value}'"
+            for column, value in columns.items()
+        ])
+        query = f"""
+            UPDATE {table}
+            SET {set_parameters}
+        """
+        if criteria:
+            where_parameters = " AND ".join([
+                f"{column} = {value}"
+                for column, value in criteria.items()
+            ])
+            query += f" WHERE {where_parameters}"
+        self._execute(query)
+    
     def delete(self, table: str, criteria: dict[str, str]) -> None:
         placeholders = [f"{column} = ?" for column in criteria]
         delete_criteria = " AND ".join(placeholders)

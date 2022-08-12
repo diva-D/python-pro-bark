@@ -4,11 +4,10 @@ import sys
 from typing import Optional, Union, Any
 from database import DatabaseManager
 from datetime import timezone
-from pprint import pprint
 from pydantic import BaseModel, ValidationError, parse_obj_as
 
 import requests
-from pydantic_types import StarredRepo, ResponseGithubStars
+from pydantic_types import StarredRepo, ResponseUpdateBookmark, ResponseGithubStars
 
 db = DatabaseManager("bookmarks.db")
 
@@ -54,13 +53,18 @@ class ListBookmarksCommand(Command):
     
     def execute(self) -> list[Any]:
         cursor = db.select(table="bookmarks", order_by=self.order_by)
-        return pprint(cursor.fetchall())
+        return cursor.fetchall()
 
 
 class DeleteBookmarkCommand(Command):
     def execute(self, id: str) -> str:
         db.delete("bookmarks", criteria={"id": id})
         return "Bookmark deleted!"
+    
+class EditBookmarkCommand(Command):
+    def execute(self, data: ResponseUpdateBookmark) -> str:
+        db.update(table="bookmarks", columns={data.column:data.new_value}, criteria={"id": data.id})
+        return "Bookmark updated!"
     
 class QuitCommand(Command):
     def execute(self) -> None:

@@ -132,3 +132,8 @@ class StarredRepo(BaseModel):
 class ResponseGithubStars(BaseModel):
     username: str
     preserve_timestamps: bool = True
+    
+class ResponseUpdateBookmark(BaseModel):
+    column: str
+    new_value: str
+    id: str

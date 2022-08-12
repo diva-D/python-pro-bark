@@ -2,7 +2,7 @@ import os
 import commands
 from pprint import pprint
 from typing import Any, Union, Callable, cast
-from pydantic_types import ResponseGithubStars
+from pydantic_types import ResponseUpdateBookmark, ResponseGithubStars
 
 class Option:
     def __init__(self, name: str, command: commands.Command, prep_call: Union[None, Callable[..., Any]] = None) -> None:
@@ -46,6 +46,13 @@ def get_new_bookmark_data() -> dict[str, Union[str, None]]:
 def get_delete_bookmark_data() -> str:
     return cast(str, get_user_input("Enter ID of bookmark to delete", required=True))
 
+def get_update_bookmark_data() -> ResponseUpdateBookmark:
+    return ResponseUpdateBookmark(
+        id=input("ID of bookmark to update: "),
+        column=input("Field to update: "),
+        new_value=input("New value: ")
+    )
+
 
 def get_github_stars_data() -> ResponseGithubStars:
     username = input("Github username: ")
@@ -64,6 +71,7 @@ def loop():
         "B": Option("List bookmarks by date", commands.ListBookmarksCommand(order_by="title")),
         "T": Option("List bookmarks by title", commands.ListBookmarksCommand(order_by="date_added")),
         "D": Option("Delete a bookmark", commands.DeleteBookmarkCommand(), cast(Callable[..., str], get_delete_bookmark_data)),
+        "E": Option("Edit a bookmark", commands.EditBookmarkCommand(), cast(Callable[..., Any], get_update_bookmark_data)),
         "G": Option("Import Github stars", commands.ImportGithubStarsCommand(), cast(Callable[..., Any], get_github_stars_data)),
         "Q": Option("Quit", commands.QuitCommand())
     }
