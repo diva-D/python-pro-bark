@@ -12,7 +12,7 @@ class Option:
         
     def choose(self) -> None:
         data = self.prep_call() if self.prep_call else None
-        message: str = self.command.execute(data) if data else self.command.execute()  # type: ignore
+        message: str = self.command.execute(data)
         pprint(message)
         
     def __str__(self):
@@ -28,7 +28,7 @@ def get_user_choice(options: dict[str, Option]) -> Optional[Option]:
         user_choice: str = input("Enter choice: ").upper()
         if options.get(user_choice):
             return options[user_choice]
-
+    return None
 
 def get_user_input(label: str, required: bool = True) -> Union[str, None]:
     value = input(f"{label}: ") or None

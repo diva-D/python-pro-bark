@@ -2,17 +2,20 @@ import sys
 from typing import Optional, Union, Any
 from database import DatabaseManager
 from pydantic import ValidationError, parse_obj_as
+from abc import ABC, abstractmethod
 
 import requests
 from pydantic_types import Bookmark, StarredRepo, ResponseUpdateBookmark, ResponseGithubStars
 
 db = DatabaseManager("bookmarks.db")
     
-class Command:
-    pass
+class Command(ABC):
+    @abstractmethod
+    def execute(self, data: Any) -> Any:
+        raise NotImplementedError
 
 class CreateBookmarksTableCommand(Command):
-    def execute(self) -> None:
+    def execute(self, data: None = None) -> None:
         bookmark_columns = {
             "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
             "title": "TEXT NOT NULL",
@@ -24,9 +27,9 @@ class CreateBookmarksTableCommand(Command):
 
 
 class AddBookmarkCommand(Command):
-    def execute(self, bookmark_data: dict[str, Optional[str]]) -> str:
+    def execute(self, data: dict[str, Optional[str]]) -> str:
         try:
-            bookmark = Bookmark.parse_obj(bookmark_data)
+            bookmark = Bookmark.parse_obj(data)
             db.add("bookmarks", bookmark.dict())
             
             return f"Bookmark for {bookmark.title} added!"
@@ -39,23 +42,23 @@ class ListBookmarksCommand(Command):
     def __init__(self, order_by: Union[None, str] = "date_added"):
         self.order_by = order_by
     
-    def execute(self) -> list[Any]:
+    def execute(self, data: None = None) -> list[Any]:
         cursor = db.select(table="bookmarks", order_by=self.order_by)
         return cursor.fetchall()
 
 
 class DeleteBookmarkCommand(Command):
-    def execute(self, id: str) -> str:
-        db.delete("bookmarks", criteria={"id": id})
+    def execute(self, data: str) -> str:
+        db.delete("bookmarks", criteria={"id": data})
         return "Bookmark deleted!"
     
 class EditBookmarkCommand(Command):
     def execute(self, data: ResponseUpdateBookmark) -> str:
-        db.update(table="bookmarks", columns={data.column:data.new_value}, criteria={"id": data.id})
+        db.update(table="bookmarks", columns={data.column: data.new_value}, criteria={"id": data.id})
         return "Bookmark updated!"
     
 class QuitCommand(Command):
-    def execute(self) -> None:
+    def execute(self, data: None = None) -> None:
         sys.exit()
         
 class ImportGithubStarsCommand(Command):
@@ -110,5 +113,5 @@ class ImportGithubStarsCommand(Command):
         starred_repos: list[StarredRepo] = self._get_starred_repos(data.username)
         for starred_repo in starred_repos:
             bookmark_data = self._create_bookmark_data(starred_repo, data.preserve_timestamps)
-            AddBookmarkCommand().execute(bookmark_data=bookmark_data)
+            AddBookmarkCommand().execute(data=bookmark_data)
         print(f"Imported {len(starred_repos)} from starred repos")
