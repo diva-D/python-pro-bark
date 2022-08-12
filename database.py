@@ -10,7 +10,7 @@ class DatabaseManager:
     def __del__(self):
         self.connection.close()
 
-    def _execute(self, statement: str, parameters: Union[None, tuple[Any]] = None) -> Cursor:
+    def _execute(self, statement: str, parameters: Union[None, tuple[Any, ...]] = None) -> Cursor:
         with self.connection:
             cursor = self.connection.cursor()
             cursor.execute(statement, parameters or [])
@@ -42,15 +42,12 @@ class DatabaseManager:
         )
 
     def delete(self, table: str, criteria: dict[str, str]) -> None:
-        placeholders = [f"{column} = ?" for column in criteria.keys()]
+        placeholders = [f"{column} = ?" for column in criteria]
         delete_criteria = " AND ".join(placeholders)
-        self._execute(
-            f"""
+        self._execute(f"""
             DELETE FROM {table}
             WHERE {delete_criteria}
-            """,
-            tuple(criteria.values()),
-        )
+            """, tuple(criteria.values()))
 
     def select(
         self,

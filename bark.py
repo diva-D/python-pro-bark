@@ -1,6 +1,7 @@
 import os
 import commands
 from typing import Any, Union, Callable, cast
+from pydantic_types import ResponseGithubStars
 
 class Option:
     def __init__(self, name: str, command: commands.Command, prep_call: Union[None, Callable[..., Any]] = None) -> None:
@@ -38,11 +39,18 @@ def get_new_bookmark_data() -> dict[str, Union[str, None]]:
     return {
         "title": get_user_input("Title"),
         "url": get_user_input("URL"),
-        "notes": get_user_input("Notes", required=False)
+        "notes": get_user_input("Notes", required=False),
     }
 
 def get_delete_bookmark_data() -> str:
     return cast(str, get_user_input("Enter ID of bookmark to delete", required=True))
+
+
+def get_github_stars_data() -> ResponseGithubStars:
+    username = input("Github username: ")
+    preserve_timestamps_input = input("Preserve timestamps [Y/n]: ")
+    preserve_timestamps = preserve_timestamps_input.lower() == "y"
+    return ResponseGithubStars(username=username, preserve_timestamps=preserve_timestamps)
 
 def clear_screen():
     clear = 'cls' if os.name == 'nt' else 'clear'
@@ -55,6 +63,7 @@ def loop():
         "B": Option("List bookmarks by date", commands.ListBookmarksCommand(order_by="title")),
         "T": Option("List bookmarks by title", commands.ListBookmarksCommand(order_by="date_added")),
         "D": Option("Delete a bookmark", commands.DeleteBookmarkCommand(), cast(Callable[..., str], get_delete_bookmark_data)),
+        "G": Option("Import Github stars", commands.ImportGithubStarsCommand(), cast(Callable[..., Any], get_github_stars_data)),
         "Q": Option("Quit", commands.QuitCommand())
     }
     print_options(options)
