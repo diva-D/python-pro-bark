@@ -1,24 +1,12 @@
-from datetime import datetime
-from os import environ
 import sys
 from typing import Optional, Union, Any
 from database import DatabaseManager
-from datetime import timezone
-from pydantic import BaseModel, ValidationError, parse_obj_as
+from pydantic import ValidationError, parse_obj_as
 
 import requests
-from pydantic_types import StarredRepo, ResponseUpdateBookmark, ResponseGithubStars
+from pydantic_types import Bookmark, StarredRepo, ResponseUpdateBookmark, ResponseGithubStars
 
 db = DatabaseManager("bookmarks.db")
-
-
-
-
-class Bookmark(BaseModel):
-    title: str
-    url: str
-    notes: Optional[str] = None
-    date_added: str = datetime.now(timezone.utc).isoformat()
     
 class Command:
     pass
@@ -74,10 +62,10 @@ class ImportGithubStarsCommand(Command):
     base_url: str = "https://api.github.com/"
         
     def _get_starred_repos(self, username: str) -> list[StarredRepo]:
-        endpoint = "user/starred"
+        endpoint = f"users/{username}/starred"
         headers = {
             "Accept": "application/vnd.github.v3.star+json",
-            "Authorization": f"token {environ.get('GITHUB_TOKEN')}"
+            # "Authorization": f"token {environ.get('GITHUB_TOKEN')}"
         }
         response = requests.get(f"{self.base_url}{endpoint}", headers=headers)
         starred_repos: Union[list[StarredRepo], list[Any]] = parse_obj_as(list[StarredRepo], response.json())

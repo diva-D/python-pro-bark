@@ -1,9 +1,13 @@
-from __future__ import annotations
-
+from datetime import datetime, timezone
 from typing import Any, List, Optional
 
 from pydantic import BaseModel
 
+class Bookmark(BaseModel):
+    title: str
+    url: str
+    notes: Optional[str] = None
+    date_added: str = datetime.now(timezone.utc).isoformat()
 
 class Owner(BaseModel):
     login: str
@@ -32,14 +36,6 @@ class LicenseItem(BaseModel):
     spdx_id: str
     url: Optional[str]
     node_id: str
-
-
-class Permissions(BaseModel):
-    admin: bool
-    maintain: bool
-    push: bool
-    triage: bool
-    pull: bool
 
 
 class Repo(BaseModel):
@@ -121,8 +117,6 @@ class Repo(BaseModel):
     open_issues: int
     watchers: int
     default_branch: str
-    permissions: Permissions
-
 
 class StarredRepo(BaseModel):
     starred_at: str
