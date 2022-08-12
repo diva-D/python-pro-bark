@@ -1,3 +1,5 @@
 {
-  "python.analysis.typeCheckingMode": "strict"
+  "python.analysis.typeCheckingMode": "strict",
+  "docwriter.style": "NumPy",
+  "docwriter.progress.trackFunctions": true
 }

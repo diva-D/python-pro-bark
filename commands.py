@@ -62,6 +62,13 @@ class ImportGithubStarsCommand(Command):
     base_url: str = "https://api.github.com/"
         
     def _get_starred_repos(self, username: str) -> list[StarredRepo]:
+        """
+        It gets the starred repos of a user.
+        
+        :param username: str - The username of the user whose starred repos you want to get
+        :type username: str
+        :return: A list of StarredRepo objects
+        """
         endpoint = f"users/{username}/starred"
         headers = {
             "Accept": "application/vnd.github.v3.star+json",
@@ -75,6 +82,18 @@ class ImportGithubStarsCommand(Command):
         return starred_repos
     
     def _create_bookmark_data(self, starred_repo: StarredRepo, preserve_timestamps: bool = True) -> dict[str, Union[str, None]]:
+        """
+        > This function takes a `StarredRepo` object and returns a dictionary with the keys `title`,
+        `url`, `notes`, and `date_added`
+        
+        :param starred_repo: StarredRepo
+        :type starred_repo: StarredRepo
+        :param preserve_timestamps: If True, the date_added field of the bookmark will be set to the
+        date the repo was starred. If False, the date_added field will be set to the current date,
+        defaults to True
+        :type preserve_timestamps: bool (optional)
+        :return: A dictionary with the title, url, notes, and date_added.
+        """
         repo = starred_repo.repo
         bookmark_data = {
             "title": repo.name,

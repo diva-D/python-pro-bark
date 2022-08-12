@@ -1,7 +1,7 @@
 import os
 import commands
 from pprint import pprint
-from typing import Any, Union, Callable, cast
+from typing import Any, Union, Callable, cast, Optional
 from pydantic_types import ResponseUpdateBookmark, ResponseGithubStars
 
 class Option:
@@ -22,7 +22,7 @@ def print_options(options: dict[str, Option]) -> None:
     for shortcut, option in options.items():
         print(f"({shortcut}) {option}")
         
-def get_user_choice(options: dict[str, Option]) -> Option:  # type: ignore
+def get_user_choice(options: dict[str, Option]) -> Optional[Option]:
     valid_choice = False
     while not valid_choice:
         user_choice: str = input("Enter choice: ").upper()
@@ -55,6 +55,14 @@ def get_update_bookmark_data() -> ResponseUpdateBookmark:
 
 
 def get_github_stars_data() -> ResponseGithubStars:
+    '''It asks the user for a Github username and whether they want to preserve timestamps, and returns a
+    `ResponseGithubStars` object with the username and preserve timestamps flag
+    
+    Returns
+    -------
+        A ResponseGithubStars object.
+    
+    '''
     username = input("Github username: ")
     preserve_timestamps_input = input("Preserve timestamps [Y/n]: ")
     preserve_timestamps = preserve_timestamps_input.lower() == "y"
@@ -77,7 +85,7 @@ def loop():
     }
     print_options(options)
     print("")
-    choice: Option = get_user_choice(options)
+    choice = cast(Option, get_user_choice(options))
     print("")
     choice.choose()
     print("")
