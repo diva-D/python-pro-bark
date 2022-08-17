@@ -2,19 +2,25 @@ import os
 import commands
 from pprint import pprint
 from typing import Any, Union, Callable, cast, Optional
+from pydantic import BaseModel
 from pydantic_types import ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
 
-class Option:
-    def __init__(self, name: str, command: commands.Command, prep_call: Union[None, Callable[..., Any]] = None) -> None:
-        self.name = name
-        self.command = command
-        self.prep_call = prep_call
+class Option(BaseModel):
+    name: str
+    command: commands.Command
+    prep_call: Optional[Callable[..., Any]] = None
+    success_message: Optional[str] = "Success!"
         
     def choose(self) -> None:
         data = self.prep_call() if self.prep_call else None
         command_response: Optional[ResponseCommand] = self.command.execute(data)
-        if command_response:
-            pprint(command_response.result)
+        if command_response and command_response.status:
+            if isinstance(command_response.result, list):
+                pprint(command_response.result)
+            elif self.success_message:
+                print(self.success_message)
+        elif command_response and command_response.error:
+            print(command_response.error)
         
     def __str__(self):
         return self.name
@@ -76,13 +82,13 @@ def clear_screen():
 
 def loop():
     options: dict[str, Option] = {
-        "A": Option("Add a bookmark", commands.AddBookmarkCommand(), cast(Callable[..., Any], get_new_bookmark_data)),
-        "B": Option("List bookmarks by date", commands.ListBookmarksCommand(order_by="title")),
-        "T": Option("List bookmarks by title", commands.ListBookmarksCommand(order_by="date_added")),
-        "D": Option("Delete a bookmark", commands.DeleteBookmarkCommand(), cast(Callable[..., str], get_delete_bookmark_data)),
-        "E": Option("Edit a bookmark", commands.EditBookmarkCommand(), cast(Callable[..., Any], get_update_bookmark_data)),
-        "G": Option("Import Github stars", commands.ImportGithubStarsCommand(), cast(Callable[..., Any], get_github_stars_data)),
-        "Q": Option("Quit", commands.QuitCommand())
+        "A": Option(name="Add a bookmark", command=commands.AddBookmarkCommand(),  prep_call=cast(Callable[..., Any], get_new_bookmark_data), success_message="Bookmark added!"),
+        "B": Option(name="List bookmarks by date", command=commands.ListBookmarksCommand(order_by="title")),
+        "T": Option(name="List bookmarks by title", command=commands.ListBookmarksCommand(order_by="date_added")),
+        "D": Option(name="Delete a bookmark", command=commands.DeleteBookmarkCommand(),  prep_call=cast(Callable[..., str], get_delete_bookmark_data), success_message="Bookmark deleted!"),
+        "E": Option(name="Edit a bookmark", command=commands.EditBookmarkCommand(),  prep_call=cast(Callable[..., Any], get_update_bookmark_data), success_message="Bookmark updated!"),
+        "G": Option(name="Import Github stars", command=commands.ImportGithubStarsCommand(),  prep_call=cast(Callable[..., Any], get_github_stars_data), success_message="Github starts imported!"),
+        "Q": Option(name="Quit", command=commands.QuitCommand())
     }
     print_options(options)
     print("")

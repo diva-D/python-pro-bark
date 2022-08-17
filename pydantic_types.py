@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 from pydantic import BaseModel
 
@@ -134,4 +134,5 @@ class ResponseUpdateBookmark(BaseModel):
 
 class ResponseCommand(BaseModel):
     status: bool
-    result: Union[str, list[Any]]
+    result: Optional[list[Any]]
+    error: Optional[str] = None
