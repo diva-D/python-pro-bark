@@ -2,7 +2,7 @@ import os
 import commands
 from pprint import pprint
 from typing import Any, Union, Callable, cast, Optional
-from pydantic_types import ResponseUpdateBookmark, ResponseGithubStars
+from pydantic_types import ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
 
 class Option:
     def __init__(self, name: str, command: commands.Command, prep_call: Union[None, Callable[..., Any]] = None) -> None:
@@ -12,8 +12,9 @@ class Option:
         
     def choose(self) -> None:
         data = self.prep_call() if self.prep_call else None
-        message: str = self.command.execute(data)
-        pprint(message)
+        command_response: Optional[ResponseCommand] = self.command.execute(data)
+        if command_response:
+            pprint(command_response.result)
         
     def __str__(self):
         return self.name

@@ -5,17 +5,17 @@ from pydantic import ValidationError, parse_obj_as
 from abc import ABC, abstractmethod
 
 import requests
-from pydantic_types import Bookmark, StarredRepo, ResponseUpdateBookmark, ResponseGithubStars
+from pydantic_types import Bookmark, StarredRepo, ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
 
 db = DatabaseManager("bookmarks.db")
     
 class Command(ABC):
     @abstractmethod
-    def execute(self, data: Any) -> Any:
+    def execute(self, data: Any) -> Optional[ResponseCommand]:
         raise NotImplementedError
 
 class CreateBookmarksTableCommand(Command):
-    def execute(self, data: None = None) -> None:
+    def execute(self, data: None = None) -> ResponseCommand:
         bookmark_columns = {
             "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
             "title": "TEXT NOT NULL",
@@ -24,38 +24,39 @@ class CreateBookmarksTableCommand(Command):
             "date_added": "TEXT NOT NULL",
         }
         db.create_table("bookmarks", bookmark_columns)
+        return ResponseCommand(status=True, result="Table created")
 
 
 class AddBookmarkCommand(Command):
-    def execute(self, data: dict[str, Optional[str]]) -> str:
+    def execute(self, data: dict[str, Optional[str]]) -> ResponseCommand:
         try:
             bookmark = Bookmark.parse_obj(data)
             db.add("bookmarks", bookmark.dict())
             
-            return f"Bookmark for {bookmark.title} added!"
+            return ResponseCommand(status=True, result=f"Bookmark for {bookmark.title} added!")
             
         except ValidationError as e:
-            return (str(e))
+            return ResponseCommand(status=False, result=str(e))
         
 
 class ListBookmarksCommand(Command):
     def __init__(self, order_by: Union[None, str] = "date_added"):
         self.order_by = order_by
     
-    def execute(self, data: None = None) -> list[Any]:
+    def execute(self, data: None = None) -> ResponseCommand:
         cursor = db.select(table="bookmarks", order_by=self.order_by)
-        return cursor.fetchall()
+        return ResponseCommand(status=True, result=cursor.fetchall())
 
 
 class DeleteBookmarkCommand(Command):
-    def execute(self, data: str) -> str:
+    def execute(self, data: str) -> ResponseCommand:
         db.delete("bookmarks", criteria={"id": data})
-        return "Bookmark deleted!"
+        return ResponseCommand(status=True, result="Bookmark deleted!")
     
 class EditBookmarkCommand(Command):
-    def execute(self, data: ResponseUpdateBookmark) -> str:
+    def execute(self, data: ResponseUpdateBookmark) -> ResponseCommand:
         db.update(table="bookmarks", columns={data.column: data.new_value}, criteria={"id": data.id})
-        return "Bookmark updated!"
+        return ResponseCommand(status=True, result="Bookmark updated!")
     
 class QuitCommand(Command):
     def execute(self, data: None = None) -> None:
@@ -108,10 +109,10 @@ class ImportGithubStarsCommand(Command):
             
         return bookmark_data
     
-    def execute(self, data: ResponseGithubStars) -> None:
+    def execute(self, data: ResponseGithubStars) -> ResponseCommand:
         # get starred repos
         starred_repos: list[StarredRepo] = self._get_starred_repos(data.username)
         for starred_repo in starred_repos:
             bookmark_data = self._create_bookmark_data(starred_repo, data.preserve_timestamps)
             AddBookmarkCommand().execute(data=bookmark_data)
-        print(f"Imported {len(starred_repos)} from starred repos")
+        return ResponseCommand(status=True, result=f"Imported {len(starred_repos)} from starred repos")
