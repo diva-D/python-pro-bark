@@ -3,7 +3,7 @@ import commands
 from pprint import pprint
 from typing import Any, Union, Callable, cast, Optional
 from pydantic import BaseModel
-from pydantic_types import ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
+from models.app import ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
 
 class Option(BaseModel):
     name: str

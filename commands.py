@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 
 import requests
 from persistence import BookmarkDatabase
-from pydantic_types import Bookmark, StarredRepo, ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
+from models.github import StarredRepo
+from models.app import Bookmark, ResponseUpdateBookmark, ResponseGithubStars, ResponseCommand
 
 persistence = BookmarkDatabase()
 class Command(BaseModel, ABC):
